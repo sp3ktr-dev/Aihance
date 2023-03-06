@@ -4,6 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { envConfiguration } from './config/env.config';
 import { JoiValidationSchema } from './config/joi.validation';
 import { AuthModule } from './auth/auth.module';
+import { ContentModule } from './content/content.module';
+import { CollectionModule } from './collection/collection.module';
+import { FavouriteModule } from './favourite/favourite.module';
 
 @Module({
     imports: [
@@ -20,8 +23,15 @@ import { AuthModule } from './auth/auth.module';
             database: process.env.MYSQL_DB_NAME,
             autoLoadEntities: true,
             synchronize: true,
+            extra: {
+                softDelete: true,
+                where: 'deletedAt IS NULL',
+            },
         }),
         AuthModule,
+        ContentModule,
+        CollectionModule,
+        FavouriteModule,
     ],
 })
 export class AppModule {
