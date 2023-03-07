@@ -31,7 +31,11 @@ export class Content {
     @Column()
     isUpscaled: boolean;
 
-    // upscale_of:
+    @Column('varchar', { length: 255, nullable: false })
+    url: string;
+
+    @Column('varchar', { length: 70, nullable: false })
+    permalink: string;
 
     @DeleteDateColumn()
     deleted_at: Date;

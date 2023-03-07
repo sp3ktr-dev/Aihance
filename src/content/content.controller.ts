@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ContentService } from './content.service';
-import { UpdateContentDto } from './dto/';
+import { CreateContentDto, UpdateContentDto } from './dto/';
 import { Auth } from '@/auth/decorators';
 import { ValidRoles } from '@/auth/enums/valid-roles.enum';
 import { FiltersDto } from '@/common/dto/filters.dto';
@@ -8,6 +8,12 @@ import { FiltersDto } from '@/common/dto/filters.dto';
 @Controller('content')
 export class ContentController {
     constructor(private readonly contentService: ContentService) {
+    }
+
+    @Auth(ValidRoles.admin)
+    @Post()
+    create(@Body() createCollectionDto: CreateContentDto) {
+        return this.contentService.create(createCollectionDto);
     }
 
     @Get()

@@ -1,17 +1,60 @@
 import { Injectable } from '@nestjs/common';
+import { Brackets, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { HttpService } from '@nestjs/axios';
+import * as sharp from 'sharp';
+import * as uuid from 'uuid';
+import * as fs from 'fs';
+
+import { Content } from '@/content/entities/content.entity';
 import { CreateContentDto, UpdateContentDto } from './dto';
 import { FiltersDto } from '@/common/dto/filters.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Content } from '@/content/entities/content.entity';
-import { Brackets, Repository } from 'typeorm';
+import { firstValueFrom } from 'rxjs';
+import { ContentProportions } from '@/content/enums/content-proportions.enum';
 
 @Injectable()
 export class ContentService {
-    constructor(@InjectRepository(Content) private readonly contentRepository: Repository<Content>) {
+    constructor(@InjectRepository(Content) private readonly contentRepository: Repository<Content>,
+                private readonly httpService: HttpService) {
     }
 
-    async create(createContentDto: CreateContentDto) {
-        return 'This action adds a new content';
+    async create(createContentDto: CreateContentDto): Promise<Content> {
+
+        const fullSizeName = uuid.v4();
+        const mediumSizeName = uuid.v4();
+        const smallSizeName = uuid.v4();
+
+        const proportion =
+            createContentDto.width > createContentDto.height
+                ? ContentProportions.horizontal
+                : createContentDto.width < createContentDto.height
+                    ? ContentProportions.vertical
+                    : ContentProportions.square;
+
+        const response = await firstValueFrom(this.httpService.get(createContentDto.url, { responseType: 'arraybuffer' }));
+        const originalImage = Buffer.from(response.data);
+
+        await fs.promises.writeFile(`src/files/original/${ fullSizeName }.png`, originalImage);
+
+        await Promise.all([
+            this.resizeImage(originalImage, `src/files/medium/${ mediumSizeName }.png`, { height: 450 }),
+            this.resizeImage(originalImage, `src/files/small/${ smallSizeName }.png`, { height: 300 }),
+        ]);
+
+        const content = this.contentRepository.create({
+            keywords: createContentDto.keywords,
+            preview_small: smallSizeName,
+            preview_medium: mediumSizeName,
+            image: fullSizeName,
+            width: createContentDto.width,
+            height: createContentDto.height,
+            proportion,
+            isUpscaled: createContentDto.isUpscaled,
+            url: createContentDto.url,
+            permalink: createContentDto.permalink,
+        });
+
+        return await this.contentRepository.save(content);
     }
 
     async findAll(filtersDto: FiltersDto): Promise<Content[]> {
@@ -81,5 +124,11 @@ export class ContentService {
 
     async remove(id: number) {
         return `This action removes a #${ id } content`;
+    }
+
+    private async resizeImage(originalImage: Buffer, saveTo: string, options: sharp.ResizeOptions): Promise<void> {
+        const image = sharp(originalImage);
+        const resizedImage = await image.resize(options);
+        await resizedImage.toFile(saveTo);
     }
 }
