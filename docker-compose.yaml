@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: ${MYSQL_TIMEZONE}
     ports:
-      - "3306:3306"
+      - ${MYSQL_PORT}:3306
     volumes:
       - ./docker/db_data:/var/lib/mysql
 volumes:

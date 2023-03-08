@@ -37,8 +37,8 @@ export class ContentService {
         await fs.promises.writeFile(`src/files/original/${ fullSizeName }.png`, originalImage);
 
         await Promise.all([
-            this.resizeImage(originalImage, `src/files/medium/${ mediumSizeName }.png`, { height: 450 }),
-            this.resizeImage(originalImage, `src/files/small/${ smallSizeName }.png`, { height: 300 }),
+            this.resizeImage(originalImage, `src/files/medium/${ mediumSizeName }.png`, { height: 300 }),
+            this.resizeImage(originalImage, `src/files/small/${ smallSizeName }.png`, { height: 100 }),
         ]);
 
         const content = this.contentRepository.create({
@@ -52,6 +52,7 @@ export class ContentService {
             isUpscaled: createContentDto.isUpscaled,
             url: createContentDto.url,
             permalink: createContentDto.permalink,
+            author_id: createContentDto.author_id,
         });
 
         return await this.contentRepository.save(content);

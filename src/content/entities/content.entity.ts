@@ -37,6 +37,9 @@ export class Content {
     @Column('varchar', { length: 70, nullable: false })
     permalink: string;
 
+    @Column('bigint')
+    author_id: string;
+
     @DeleteDateColumn()
     deleted_at: Date;
 }

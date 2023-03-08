@@ -8,9 +8,9 @@ export const JoiValidationSchema = Joi.object({
 
     MYSQL_DB_NAME: Joi.string().default('aihance'),
     MYSQL_HOST: Joi.string().default('localhost'),
+    MYSQL_PORT: Joi.number().required(),
     MYSQL_ROOT_PASS: Joi.string().default(''),
     MYSQL_USER: Joi.string().required(),
     MYSQL_PASSWORD: Joi.string().required(),
     MYSQL_TIMEZONE: Joi.string().default('Europe/Madrid'),
-
 });

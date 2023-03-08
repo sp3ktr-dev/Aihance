@@ -22,4 +22,7 @@ export class CreateContentDto {
     @IsString()
     @MinLength(30)
     permalink: string;
+
+    @IsString()
+    author_id: string;
 }
