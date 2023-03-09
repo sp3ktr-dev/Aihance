@@ -1,4 +1,5 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Collection } from '@/collection/entities/collection.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -16,6 +17,9 @@ export class User {
 
     @Column({ type: 'varchar', length: 255, nullable: true, default: 'user' })
     roles: string;
+
+    @OneToMany(() => Collection, collection => collection.user)
+    collections: Collection[];
 
     @BeforeInsert()
     checkFieldsBeforeInsert() {

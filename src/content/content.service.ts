@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Brackets, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpService } from '@nestjs/axios';
@@ -11,6 +11,7 @@ import { CreateContentDto, UpdateContentDto } from './dto';
 import { FiltersDto } from '@/common/dto/filters.dto';
 import { firstValueFrom } from 'rxjs';
 import { ContentProportions } from '@/content/enums/content-proportions.enum';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class ContentService {
@@ -58,7 +59,7 @@ export class ContentService {
         return await this.contentRepository.save(content);
     }
 
-    async findAll(filtersDto: FiltersDto): Promise<Content[]> {
+    async findAll(filtersDto: FiltersDto): Promise<{ content: Content[]; totalCount: number }> {
 
         const { limit = 50, offset = 0, ...filters } = filtersDto;
         const proportion = filters.proportion ?? undefined;
@@ -112,11 +113,38 @@ export class ContentService {
         }
 
         contentQueryBuilder.take(limit).skip(offset);
-        return await contentQueryBuilder.getMany();
+        const [content, totalCount] = await contentQueryBuilder.getManyAndCount();
+        return { content, totalCount };
     }
 
-    async findOne(id: number) {
-        return `This action returns a #${ id } content`;
+    async findByCollection(
+        collectionId: number,
+        paginationDto: PaginationDto,
+        totalCount: boolean = false,
+    ): Promise<Content[] | { content: Content[]; totalCount: number }> {
+        const { limit = 50, offset = 0 } = paginationDto;
+        const selectOptions = {
+            where: {
+                collections: { id: collectionId },
+            },
+            take: limit,
+            skip: offset,
+        };
+
+        if (totalCount) {
+            const [content, totalCount] = await this.contentRepository.findAndCount(selectOptions);
+            return { content, totalCount };
+        } else {
+            return await this.contentRepository.find(selectOptions);
+        }
+
+    }
+
+    async findOne(id: number): Promise<Content> {
+        const content = await this.contentRepository.findOneBy({ id });
+        if (!content)
+            throw new NotFoundException();
+        return content;
     }
 
     async update(id: number, updateContentDto: UpdateContentDto) {

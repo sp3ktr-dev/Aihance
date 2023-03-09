@@ -15,6 +15,7 @@ import { AuthModule } from '@/auth/auth.module';
     ],
     controllers: [ContentController],
     providers: [ContentService],
+    exports: [ContentService, TypeOrmModule], // TODO: REMOVE TYPEORM
 })
 export class ContentModule {
 }

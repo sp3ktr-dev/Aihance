@@ -1,5 +1,6 @@
-import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ContentProportions } from '../enums/content-proportions.enum';
+import { Collection } from '@/collection/entities/collection.entity';
 
 @Entity({ name: 'content' })
 export class Content {
@@ -40,18 +41,9 @@ export class Content {
     @Column('bigint')
     author_id: string;
 
+    @ManyToMany(() => Collection, collection => collection.content)
+    collections: Collection[];
+
     @DeleteDateColumn()
     deleted_at: Date;
 }
-
-/*
- WHERE (
- `content`.`isUpscale` = ? AND
- (
-     `content`.`keywords` NOT LIKE ? AND
-     `content`.`keywords` NOT LIKE ?
- )
- )
-
-
- */
