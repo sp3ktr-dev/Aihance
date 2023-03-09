@@ -5,11 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
 import { CreateUserDto, LoginUserDto, RegisterDto, UpdateUserDto } from './dto/';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 import { User } from './entities/user.entity';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ValidRoles } from './enums/valid-roles.enum';
-import { handleDBErrors } from '../common/helpers/handle-db-errors.helper';
+import { handleDBErrors } from '@/common/helpers/handle-db-errors.helper';
 
 @Injectable()
 export class AuthService {
