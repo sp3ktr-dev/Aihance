@@ -14,6 +14,7 @@ async function bootstrap() {
             },
         }),
     );
+    app.enableCors();
     const PORT = process.env.API_PORT;
     await app.listen(PORT, () => console.log(`Aihance backend started at ${ PORT }`));
 }

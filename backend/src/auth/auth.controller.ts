@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Auth, GetUser } from './decorators';
 import { CreateUserDto, LoginUserDto, RegisterDto, UpdateUserDto } from './dto/';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './enums/valid-roles.enum';
+import { HttpStatusCode } from 'axios';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
     }
 
     @Post('login')
+    @HttpCode(HttpStatusCode.Ok)
     loginUser(@Body() loginUserDto: LoginUserDto) {
         return this.authService.login(loginUserDto);
     }

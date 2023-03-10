@@ -1,6 +1,6 @@
 <template>
     <div>
-        content
+        collection
     </div>
 </template>
 
