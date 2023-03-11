@@ -17,10 +17,14 @@ const routes = [
         component: Authorization,
     },
     {
-        path: '/content/:type',
+        path: '/content/:type/:collectionId?',
         name: 'content',
         component: Content,
         beforeEnter: [isAuthenticatedGuard],
+        props: (route) => {
+            return { contentType: (route.params.type) };
+        },
+
     },
     {
         path: '/collections',

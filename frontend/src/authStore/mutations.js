@@ -1,3 +1,5 @@
+import router from '@/router';
+
 export const loginUser = (state, { user, token, isAdmin }) => {
     console.log('mutation login');
     if (token) {
@@ -9,7 +11,7 @@ export const loginUser = (state, { user, token, isAdmin }) => {
     state.isAdmin = isAdmin;
 };
 
-export const logoutUser = (state) => {
+export const logoutUser = (state, redirect = false) => {
     console.log('mutation logout');
     if (state.token) {
         state.user = null;
@@ -17,5 +19,8 @@ export const logoutUser = (state) => {
         state.authStatus = false;
         state.isAdmin = false;
         localStorage.removeItem('token');
+        if (redirect) {
+            router.push('/auth');
+        }
     }
 };

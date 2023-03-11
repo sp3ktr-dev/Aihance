@@ -1,11 +1,20 @@
 <template>
     <div>
-        collection
+        <Menu :is-admin="isAdmin()"/>
     </div>
 </template>
 
 <script>
-export default {};
+import Menu from '@/components/menu';
+import { mapGetters } from 'vuex';
+
+export default {
+    name: 'collections-list',
+    components: { Menu },
+    methods: {
+        ...mapGetters(['isAdmin']),
+    },
+};
 </script>
 
 <style scoped>

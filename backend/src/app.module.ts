@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { envConfiguration } from './config/env.config';
 import { JoiValidationSchema } from './config/joi.validation';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 import { AuthModule } from './auth/auth.module';
 import { ContentModule } from './content/content.module';
 import { CollectionModule } from './collection/collection.module';
@@ -27,6 +30,10 @@ import { FavouriteModule } from './favourite/favourite.module';
                 softDelete: true,
                 where: 'deletedAt IS NULL',
             },
+        }),
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', 'src', 'files'),
+            serveRoot: '/images',
         }),
         AuthModule,
         ContentModule,
