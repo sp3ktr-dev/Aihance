@@ -111,10 +111,10 @@ export class AuthService {
             select: { id: true, email: true, password: true, roles: true },
         });
         if (!user) {
-            throw new UnauthorizedException('Credentials are not valid (email)');
+            throw new UnauthorizedException('Incorrect email');
         }
         if (!bcrypt.compareSync(password, user.password))
-            throw new UnauthorizedException('Credentials are not valid (password)');
+            throw new UnauthorizedException('Incorrect password');
 
         delete user.password;
         return {

@@ -14,8 +14,8 @@ export const registerUser = async ({ commit }, user) => {
         commit('loginUser', { user, token, isAdmin });
         return { ok: true };
     } catch (error) {
-        commit('logout');
-        console.log(error);
+        commit('logoutUser');
+        return { ok: false, message: error.response.data.message };
     }
 };
 
@@ -33,8 +33,8 @@ export const loginUser = async ({ commit }, user) => {
         commit('loginUser', { user, token, isAdmin });
         return { ok: true };
     } catch (error) {
-        commit('logout');
-        console.log(error);
+        commit('logoutUser');
+        return { ok: false, message: error.response.data.message };
     }
 };
 
