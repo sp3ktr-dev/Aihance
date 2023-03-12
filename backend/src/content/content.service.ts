@@ -13,6 +13,7 @@ import { firstValueFrom } from 'rxjs';
 import { ContentProportions } from '@/content/enums/content-proportions.enum';
 import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
 import { User } from '@/auth/entities/user.entity';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class ContentService {
@@ -75,13 +76,23 @@ export class ContentService {
         return { content, totalCount };
     }
 
+    async findAllRemoved(paginationDto: PaginationDto): Promise<{ content: Content[]; totalCount: number }> {
+        const { limit = 50, offset = 0 } = paginationDto;
+        const [content, totalCount] = await this.contentRepository.createQueryBuilder('content')
+            .where('content.deleted_at IS NOT NULL')
+            .withDeleted()
+            .take(limit)
+            .skip(offset)
+            .getManyAndCount();
+        return { content, totalCount };
+    }
+
     async findByCollection(
         collectionId: number,
         user: User,
         filtersDto: FiltersDto,
         returnTotalCount: boolean = false,
     ): Promise<Content[] | { content: Content[]; totalCount: number }> {
-        console.log('called');
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
@@ -114,8 +125,13 @@ export class ContentService {
         return `This action updates a #${ id } content`;
     }
 
-    async remove(id: number) {
-        return `This action removes a #${ id } content`;
+    async softRemove(id: number) {
+        const content = await this.findOne(id);
+        await this.contentRepository.softRemove(content);
+    }
+
+    async restore(id: number) {
+        await this.contentRepository.restore({ id });
     }
 
     private async resizeImage(originalImage: Buffer, saveTo: string, options: sharp.ResizeOptions): Promise<void> {

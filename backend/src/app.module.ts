@@ -26,10 +26,6 @@ import { FavouriteModule } from './favourite/favourite.module';
             database: process.env.MYSQL_DB_NAME,
             autoLoadEntities: true,
             synchronize: true,
-            extra: {
-                softDelete: true,
-                where: 'deletedAt IS NULL',
-            },
         }),
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'src', 'files'),
