@@ -1,6 +1,7 @@
-import { Column, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ContentProportions } from '../enums/content-proportions.enum';
 import { Collection } from '@/collection/entities/collection.entity';
+import { Favourite } from '@/favourite/entities/favourite.entity';
 
 @Entity({ name: 'content' })
 export class Content {
@@ -43,6 +44,9 @@ export class Content {
 
     @ManyToMany(() => Collection, collection => collection.content)
     collections: Collection[];
+
+    @OneToMany(() => Favourite, favourite => favourite.parentContent)
+    favourites: Favourite[];
 
     @DeleteDateColumn()
     deleted_at: Date;

@@ -17,11 +17,13 @@ export class ContentController {
         return this.contentService.create(createCollectionDto);
     }
 
+    @Auth(ValidRoles.user)
     @Get()
     findAll(@Query() filtersDto: FiltersDto) {
         return this.contentService.findAll(filtersDto);
     }
 
+    @Auth(ValidRoles.user)
     @Get(':id')
     findOne(@Param('id', ParseIntPipe) id: string) {
         return this.contentService.findOne(+id);

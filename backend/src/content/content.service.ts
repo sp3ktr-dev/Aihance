@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Brackets, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpService } from '@nestjs/axios';
 import * as sharp from 'sharp';
@@ -12,6 +12,7 @@ import { FiltersDto } from '@/common/dto/filters.dto';
 import { firstValueFrom } from 'rxjs';
 import { ContentProportions } from '@/content/enums/content-proportions.enum';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
 
 @Injectable()
 export class ContentService {
@@ -60,60 +61,17 @@ export class ContentService {
     }
 
     async findAll(filtersDto: FiltersDto): Promise<{ content: Content[]; totalCount: number }> {
+        const { limit = 50, offset = 0 } = filtersDto;
+        const { condition, params } = buildFilterCondition(filtersDto);
 
-        const { limit = 50, offset = 0, ...filters } = filtersDto;
-        const proportion = filters.proportion ?? undefined;
-        const upscalesOnly = filters.upscales_only === 'true';
+        const contentQB = this.contentRepository.createQueryBuilder('content');
 
-        const includeWords = filters.includeWords ?
-            filters.includeWords.split(/[,\s]+/).filter(Boolean)
-            : undefined;
-        const excludeWords = filters.excludeWords ?
-            filters.excludeWords.split(/[,\s]+/).filter(Boolean)
-            : undefined;
+        if (condition) contentQB.where(condition, params);
 
-        // TODO: Max include and exclude words limit
-
-        if (includeWords || excludeWords) {
-            // TODO: rate limit (search)
-
-        } else {
-            // TODO: rate limit (normal page loads)
-        }
-
-        const contentQueryBuilder = this.contentRepository.createQueryBuilder('content');
-
-        if (upscalesOnly)
-            contentQueryBuilder.where('content.isUpscaled = :isUpscaled', { isUpscaled: true });
-
-        if (proportion)
-            contentQueryBuilder.andWhere('content.proportion = :proportion', { proportion });
-
-        if (includeWords) {
-            const includeParams = includeWords.reduce((params, word, i) => {
-                params[`includesWord${ i }`] = `%${ word }%`;
-                return params;
-            }, {});
-
-            const includesOperator = filters.includeAllWords ? 'AND' : 'OR';
-            const includesCondition = includeWords.map((word, i) => `content.keywords LIKE :includesWord${ i }`).join(` ${ includesOperator } `);
-            contentQueryBuilder.andWhere(new Brackets(qb => qb.where(includesCondition, includeParams)));
-        }
-
-        if (excludeWords) {
-            const excludeParams = excludeWords.reduce((params, word, i) => {
-                params[`excludesWord${ i }`] = `%${ word }%`;
-                return params;
-            }, {});
-
-            contentQueryBuilder.andWhere(
-                excludeWords.map((word, i) => `content.keywords NOT LIKE :excludesWord${ i }`).join(' AND '),
-                excludeParams,
-            );
-        }
-
-        contentQueryBuilder.take(limit).skip(offset);
-        const [content, totalCount] = await contentQueryBuilder.getManyAndCount();
+        const [content, totalCount] = await contentQB
+            .take(limit)
+            .skip(offset)
+            .getManyAndCount();
         return { content, totalCount };
     }
 

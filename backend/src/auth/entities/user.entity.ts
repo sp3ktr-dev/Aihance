@@ -1,5 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Collection } from '@/collection/entities/collection.entity';
+import { Favourite } from '@/favourite/entities/favourite.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -20,6 +21,9 @@ export class User {
 
     @OneToMany(() => Collection, collection => collection.user)
     collections: Collection[];
+
+    @OneToMany(() => Favourite, favourite => favourite.user)
+    favourites: Favourite[];
 
     @BeforeInsert()
     checkFieldsBeforeInsert() {
