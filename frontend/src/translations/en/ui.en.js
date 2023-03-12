@@ -6,8 +6,18 @@ export const ui = {
     favourite: 'Избранное',
     deleted: 'Удалённое',
     logout: 'Выйти',
+    includeWords: 'Содержать слова',
+    excludeWords: 'Исключить слова',
+    includeAllWords: 'Должно содержать все слова',
+    proportions: 'Пропорции',
+    all: 'Все',
+    horizontal: 'Горизонтальные',
+    vertical: 'Вертикальные',
+    square: 'Квадратные',
+    onlyUpscales: 'Только апскейлы',
     buttons: {
         enter: 'Войти',
         register: 'Зарегистрироваться',
+        search: 'Найти',
     },
 };

@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { ContentService } from '@/content/content.service';
 import { FiltersDto } from '@/common/dto/filters.dto';
 import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
+import { Content } from '@/content/entities/content.entity';
 
 @Injectable()
 export class FavouriteService {
@@ -31,7 +32,7 @@ export class FavouriteService {
         return await this.favouriteRepository.save(favourite);
     }
 
-    async findAll(filtersDto: FiltersDto, user: User) {
+    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: Content[], totalCount: number }> {
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
@@ -41,11 +42,12 @@ export class FavouriteService {
 
         if (condition) favouriteQB.andWhere(condition, params);
 
-        const [content, totalCount] = await favouriteQB
+        const [favourites, totalCount] = await favouriteQB
             .orderBy('favourite.created_at', 'DESC')
             .take(limit)
             .skip(offset)
             .getManyAndCount();
+        const content = favourites.map(favourite => favourite.parentContent).filter(picture => Boolean(picture));
         return { content, totalCount };
     }
 

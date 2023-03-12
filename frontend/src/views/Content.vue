@@ -1,6 +1,8 @@
 <template>
     <div>
         <Menu :is-admin="isAdmin()"/>
+        <Search @search="search" v-if="displayFilters"/>
+        <Toolbar @filters="toolbarFilters" v-if="displayFilters"/>
         <div id="pictures" ref="pictures">
             <Thumbnail class="pictures_preview" v-for="picture of picturesList" :picture="picture" :key="picture.id"/>
 
@@ -13,10 +15,12 @@ import { mapGetters } from 'vuex';
 import Menu from '@/components/menu';
 import Thumbnail from '@/components/thumbnail';
 import contentApi from '@/api/contentApi';
+import Search from '@/components/search';
+import Toolbar from '@/components/toolbar';
 
 export default {
     name: 'Content area',
-    components: { Menu, Thumbnail },
+    components: { Menu, Thumbnail, Search, Toolbar },
     props: {
         contentType: {
             type: String,
@@ -31,7 +35,7 @@ export default {
             loadMore: false,
             openedId: null,
             picturesList: [],
-            filters: [],
+            filters: {},
         };
     },
     methods: {
@@ -46,13 +50,14 @@ export default {
                     contentRoute = '/favourite';
                     break;
                 case 'deleted':
-                    contentRoute = '/deleted';
+                    contentRoute = 'content/admin/removed';
                     break;
             }
-            const { data } = await contentApi(`${ contentRoute }?offset=${ this.currentPage * this.perPage -
-            this.perPage }&limit=${ this.perPage }`);
+
+            const { data } = await contentApi.get(`${ contentRoute }?${ this.queryFilters }`);
             this.picturesList = concat ? this.picturesList.concat(data.content) : data.content;
-            this.loadMore = true;
+            this.totalCount = data.totalCount;
+            this.loadMore = this.currentPage * this.perPage < this.totalCount;
         },
         handleScroll() {
             const reactZone = document.body.offsetHeight - 500;
@@ -62,13 +67,52 @@ export default {
                 this.loadContent(true);
             }
         },
+        search({ includeWords, includeAllWords, excludeWords }) {
+            this.filters.includeWords = includeWords !== '' ? includeWords : undefined;
+            this.filters.includeAllWords = includeAllWords ? true : undefined;
+            this.filters.excludeWords = excludeWords !== '' ? excludeWords : undefined;
+            this.resetState();
+            this.loadContent();
+            console.log(this.filters);
+        },
+        toolbarFilters(filters) {
+            Object.assign(this.filters, filters);
+            this.resetState();
+            this.loadContent();
+        },
+        resetState() {
+            this.picturesList = [];
+            this.currentPage = 1;
+        },
     },
     created() {
         this.loadContent();
     },
+    computed: {
+        queryFilters() {
+            let filtersArray = [];
+
+            const offset = this.currentPage * this.perPage - this.perPage;
+            filtersArray.push(`offset=${ offset }`);
+            filtersArray.push(`limit=${ this.perPage }`);
+
+            for (let key in this.filters) {
+                if (this.filters.hasOwnProperty(key) && this.filters[key] !== undefined) {
+                    filtersArray.push(`${ key }=${ this.filters[key] }`);
+                }
+            }
+            return filtersArray.join('&');
+        },
+        displayFilters() {
+            return this.contentType !== 'deleted';
+        },
+    },
     watch: {
         contentType() {
-            console.log('WTCH');
+            console.log('watch');
+            this.resetState();
+            this.filters = {};
+            this.loadContent();
         },
     },
     mounted() {

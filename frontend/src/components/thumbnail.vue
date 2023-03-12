@@ -1,6 +1,6 @@
 <template>
     <div>
-        <img :src="`${mediumFolder}/${picture.preview_medium}.png`">
+        <img :src="`${mediumFolder}/${picture.preview_medium}.png`" :alt="picture.keywords">
     </div>
 </template>
 
