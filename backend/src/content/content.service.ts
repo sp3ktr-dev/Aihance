@@ -11,8 +11,8 @@ import { CreateContentDto, UpdateContentDto } from './dto';
 import { FiltersDto } from '@/common/dto/filters.dto';
 import { firstValueFrom } from 'rxjs';
 import { ContentProportions } from '@/content/enums/content-proportions.enum';
-import { PaginationDto } from '@/common/dto/pagination.dto';
 import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
+import { User } from '@/auth/entities/user.entity';
 
 @Injectable()
 export class ContentService {
@@ -77,25 +77,30 @@ export class ContentService {
 
     async findByCollection(
         collectionId: number,
-        paginationDto: PaginationDto,
-        totalCount: boolean = false,
+        user: User,
+        filtersDto: FiltersDto,
+        returnTotalCount: boolean = false,
     ): Promise<Content[] | { content: Content[]; totalCount: number }> {
-        const { limit = 50, offset = 0 } = paginationDto;
-        const selectOptions = {
-            where: {
-                collections: { id: collectionId },
-            },
-            take: limit,
-            skip: offset,
-        };
+        console.log('called');
+        const { limit = 50, offset = 0 } = filtersDto;
+        const { condition, params } = buildFilterCondition(filtersDto);
 
-        if (totalCount) {
-            const [content, totalCount] = await this.contentRepository.findAndCount(selectOptions);
+        const collectionContentQB = this.contentRepository.createQueryBuilder('content')
+            .leftJoinAndSelect('content.collections', 'collections')
+            .where('collections.id = :collectionId', { collectionId });
+
+        if (condition) collectionContentQB.andWhere(condition, params);
+
+        collectionContentQB
+            .take(limit)
+            .skip(offset);
+
+        if (returnTotalCount) {
+            const [content, totalCount] = await collectionContentQB.getManyAndCount();
             return { content, totalCount };
         } else {
-            return await this.contentRepository.find(selectOptions);
+            return await collectionContentQB.getMany();
         }
-
     }
 
     async findOne(id: number): Promise<Content> {

@@ -7,7 +7,7 @@ import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { User } from '@/auth/entities/user.entity';
 import { ContentService } from '@/content/content.service';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { FiltersDto } from '@/common/dto/filters.dto';
 
 @Injectable()
 export class CollectionService {
@@ -45,7 +45,7 @@ export class CollectionService {
         });
         await Promise.all(
             collections.map(async (collection) => {
-                const content = await this.contentService.findByCollection(collection.id, { limit: 5 });
+                const content = await this.contentService.findByCollection(collection.id, user, { limit: 5 });
                 if (Array.isArray(content))
                     collection.content = content;
             }),
@@ -54,9 +54,9 @@ export class CollectionService {
         return collections;
     }
 
-    async findCollectionContent(id: number, user: User, paginationDto: PaginationDto) {
+    async findCollectionContent(id: number, user: User, filtersDto: FiltersDto) {
         await this.findOne(id, user);
-        return await this.contentService.findByCollection(id, paginationDto);
+        return await this.contentService.findByCollection(id, user, filtersDto);
     }
 
     async update(id: number, updateCollectionDto: UpdateCollectionDto, user: User): Promise<Collection> {

@@ -6,7 +6,7 @@ import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { Auth, GetUser } from '@/auth/decorators';
 import { ValidRoles } from '@/auth/enums/valid-roles.enum';
 import { User } from '@/auth/entities/user.entity';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { FiltersDto } from '@/common/dto/filters.dto';
 
 @Auth(ValidRoles.user)
 @Controller('collection')
@@ -31,9 +31,9 @@ export class CollectionController {
     findCollectionContent(
         @Param('id', ParseIntPipe) id: string,
         @GetUser() user: User,
-        @Query() paginationDto: PaginationDto,
+        @Query() filtersDto: FiltersDto,
     ) {
-        return this.collectionService.findCollectionContent(+id, user, paginationDto);
+        return this.collectionService.findCollectionContent(+id, user, filtersDto);
     }
 
     @Patch(':id')
