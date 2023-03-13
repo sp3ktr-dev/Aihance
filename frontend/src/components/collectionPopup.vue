@@ -16,10 +16,11 @@
 
 <script>
 import contentApi from '@/api/contentApi';
+import { mapMutations } from 'vuex';
 
 export default {
     name: 'collection-popup',
-    emits: ['addedToCollection', 'removedFromCollection'],
+    emits: ['addedToCollection'],
     props: {
         id: {
             type: Number,
@@ -33,6 +34,7 @@ export default {
         };
     },
     methods: {
+        ...mapMutations('collections', ['removeFromCollection']),
         async loadCollectionsList() {
             const { data } = await contentApi.get('/collection');
             this.collectionsList = data;
@@ -44,22 +46,16 @@ export default {
         isInCollection(collectionId) {
             return this.imageCollections.some(collection => collection.id === collectionId);
         },
-        toggleCollection(collectionId) {
+        async toggleCollection(collectionId) {
             if (this.isInCollection(collectionId)) {
-                this.removeFromCollection(collectionId);
+                this.imageCollections = this.imageCollections.filter(collection => collection.id !== collectionId);
+                await contentApi.delete(`/collection/${ collectionId }/removeContent?id=${ this.id }`);
+                this.removeFromCollection({ contentId: this.id, collectionId });
             } else {
-                this.addToCollection(collectionId);
+                this.imageCollections.push({ id: collectionId });
+                await contentApi.post(`/collection/${ collectionId }/addContent?id=${ this.id }`);
+                this.$emit('addedToCollection', { contentId: this.id, collectionId });
             }
-        },
-        async addToCollection(collectionId) {
-            this.imageCollections.push({ id: collectionId });
-            await contentApi.post(`/collection/${ collectionId }/addContent?id=${ this.id }`);
-            this.$emit('addedToCollection', { contentId: this.id, collectionId });
-        },
-        async removeFromCollection(collectionId) {
-            this.imageCollections = this.imageCollections.filter(collection => collection.id !== collectionId);
-            await contentApi.delete(`/collection/${ collectionId }/removeContent?id=${ this.id }`);
-            this.$emit('removedFromCollection', { contentId: this.id, collectionId });
         },
     },
     created() {

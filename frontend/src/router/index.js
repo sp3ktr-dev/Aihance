@@ -4,7 +4,7 @@ import Content from '@/views/Content';
 import CollectionsList from '@/views/CollectionsList';
 import Authorization from '@/views/Authorization';
 import isAuthenticatedGuard from '@/router/auth-guard';
-import store from '@/authStore';
+import store from '@/stores';
 
 const routes = [
     {
@@ -40,12 +40,12 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-    if (!store.getters.currentAuthState && localStorage.getItem('token'))
-        await store.dispatch('checkAuthentication');
+    if (!store.getters['auth/currentAuthState'] && localStorage.getItem('token'))
+        await store.dispatch('auth/checkAuthentication');
 
     if (to.path === '/') {
-        store.getters.currentAuthState ? next('/content/discover') : next('/auth');
-    } else if (to.path === '/auth' && store.getters.currentAuthState) {
+        store.getters['auth/currentAuthState'] ? next('/content/discover') : next('/auth');
+    } else if (to.path === '/auth' && store.getters['auth/currentAuthState']) {
         next('/content/discover');
     } else {
         next();

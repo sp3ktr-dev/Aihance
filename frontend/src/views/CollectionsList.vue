@@ -1,23 +1,18 @@
 <template>
     <div>
         <Menu :is-admin="admin"/>
-        <template v-if="collections.length">
-            <Collection
-              :collectionData="collection"
-              :is-admin="admin"
-              :key="collection.id"
-              @addedToCollection="addedToCollection"
-              @removedFromCollection="removedFromCollection"
-              v-for="collection of collections"/>
-        </template>
+        <Collection
+          :collectionData="collection"
+          :is-admin="admin"
+          :key="collection.id"
+          v-for="collection of getCollections()"/>
     </div>
 </template>
 
 <script>
 import Menu from '@/components/menu';
 import Collection from '@/components/collection';
-import { mapGetters } from 'vuex';
-import contentApi from '@/api/contentApi';
+import { mapActions, mapGetters, mapMutations } from 'vuex';
 
 export default {
     name: 'collections-list',
@@ -29,22 +24,16 @@ export default {
         };
     },
     methods: {
-        ...mapGetters(['isAdmin']),
-        async loadCollections() {
-            const { data } = await contentApi.get('/collection');
-            this.collections = data;
-        },
-        addedToCollection(info) {
-            const collection = this.collections.find(collection => collection.id === info.collectionId);
-            collection.content.push(info.content);
-        },
-        removedFromCollection(info) {
-            const collection = this.collections.find(collection => collection.id === info.collectionId);
-            collection.content = collection.content.filter(picture => picture.id !== info.contentId);
-        },
+        ...mapGetters('auth', ['isAdmin']),
+        ...mapGetters('collections', ['getCollections']),
+        ...mapActions('collections', ['loadCollections']),
+        ...mapMutations('collections', ['setCollection']),
     },
     created() {
         this.loadCollections();
+    },
+    unmounted() {
+        this.setCollection([]);
     },
 };
 </script>

@@ -10,8 +10,7 @@
                   :picture="picture"
                   :is-admin="isAdmin"
                   :key="picture.id"
-                  @addedToCollection="addedToCollection"
-                  @removedFromCollection="removedFromCollection"
+                  displayed-from="collection"
                   v-for="picture of collection.content"/>
             </template>
             <template v-else>{{ $t('messages.noImagesInCollection') }}</template>
@@ -24,7 +23,6 @@ import Thumbnail from '@/components/thumbnail';
 
 export default {
     name: 'collection',
-    emits: ['addedToCollection', 'removedFromCollection'],
     props: {
         collectionData: {
             type: Object,
@@ -40,16 +38,6 @@ export default {
         return {
             collection: this.collectionData,
         };
-    },
-    methods: {
-        addedToCollection(info) {
-            const content = this.collection.content.find(picture => picture.id === info.contentId);
-            this.$emit('addedToCollection', { content, collectionId: info.collectionId });
-        },
-        removedFromCollection(info) {
-            console.log(info);
-            this.$emit('removedFromCollection', info);
-        },
     },
 };
 </script>

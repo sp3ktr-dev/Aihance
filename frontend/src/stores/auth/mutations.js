@@ -1,7 +1,6 @@
 import router from '@/router';
 
 export const loginUser = (state, { user, token, isAdmin }) => {
-    console.log('mutation login');
     if (token) {
         localStorage.setItem('token', token);
         state.token = token;
@@ -12,7 +11,6 @@ export const loginUser = (state, { user, token, isAdmin }) => {
 };
 
 export const logoutUser = (state, redirect = false) => {
-    console.log('mutation logout');
     if (state.token) {
         state.user = null;
         state.token = null;

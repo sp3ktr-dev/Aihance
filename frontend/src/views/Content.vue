@@ -7,12 +7,17 @@
         <div id="pictures">
             <Thumbnail
               @open="openModal"
+              @restore="restore"
               class="pictures_preview"
               v-for="picture of picturesList"
+              :displayed-from="contentType"
               :is-admin="admin"
               :picture="picture"
               :key="picture.id"/>
-
+            <template v-if="!picturesList.length">
+                <div v-if="contentType === 'deleted'">{{ $t('messages.noDeletedYet') }}</div>
+                <div v-if="contentType === 'favourite'">{{ $t('messages.noFavouriteYet') }}</div>
+            </template>
         </div>
     </div>
 </template>
@@ -51,7 +56,7 @@ export default {
         };
     },
     methods: {
-        ...mapGetters(['isAdmin']),
+        ...mapGetters('auth', ['isAdmin']),
         async loadContent(concat = false) {
             let contentRoute;
             switch (this.contentType) {
@@ -105,6 +110,9 @@ export default {
         openModal(id) {
             this.openedId = id;
         },
+        restore(id) {
+            this.picturesList = this.picturesList.filter(picture => picture.id !== id);
+        },
     },
     created() {
         this.loadContent();
@@ -153,6 +161,6 @@ export default {
     margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 </style>

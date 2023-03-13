@@ -86,6 +86,7 @@ export class ContentService {
         const [content, totalCount] = await this.contentRepository.createQueryBuilder('content')
             .where('content.deleted_at IS NOT NULL')
             .withDeleted()
+            .orderBy('content.deleted_at', 'DESC')
             .take(limit)
             .skip(offset)
             .getManyAndCount();

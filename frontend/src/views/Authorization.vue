@@ -53,9 +53,9 @@ export default {
                     password: this.password,
                 };
                 if (this.isRegistration) {
-                    authorize = await this.$store.dispatch('registerUser', payload);
+                    authorize = await this.$store.dispatch('auth/registerUser', payload);
                 } else if (this.isAuthorization) {
-                    authorize = await this.$store.dispatch('loginUser', payload);
+                    authorize = await this.$store.dispatch('auth/loginUser', payload);
                 }
                 if (authorize.ok) {
                     this.$router.push('/content/discover');

@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-import store from './authStore';
+import store from './stores';
 import i18n from '@/translations';
 
 createApp(App)

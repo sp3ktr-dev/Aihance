@@ -22,5 +22,6 @@ export const ui = {
         like: 'Нравится',
         toCollection: 'В коллекцию',
         delete: 'Удалить',
+        restore: 'Восстановить',
     },
 };

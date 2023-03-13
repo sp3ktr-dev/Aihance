@@ -20,7 +20,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['logoutUser']),
+        ...mapMutations('auth', ['logoutUser']),
         logout() {
             this.logoutUser(true);
         },
