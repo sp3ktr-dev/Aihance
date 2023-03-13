@@ -56,7 +56,7 @@ export class CollectionService {
 
     async findCollectionContent(id: number, user: User, filtersDto: FiltersDto) {
         await this.findOne(id, user);
-        return await this.contentService.findByCollection(id, user, filtersDto);
+        return await this.contentService.findByCollection(id, user, filtersDto, true);
     }
 
     async update(id: number, updateCollectionDto: UpdateCollectionDto, user: User): Promise<Collection> {

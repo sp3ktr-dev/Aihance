@@ -34,42 +34,47 @@ export class ContentService {
                     ? ContentProportions.vertical
                     : ContentProportions.square;
 
-        const response = await firstValueFrom(this.httpService.get(createContentDto.url, { responseType: 'arraybuffer' }));
-        const originalImage = Buffer.from(response.data);
+        try {
+            const response = await firstValueFrom(this.httpService.get(createContentDto.url, { responseType: 'arraybuffer' }));
+            const originalImage = Buffer.from(response.data);
+            await fs.promises.writeFile(`src/files/original/${ fullSizeName }.png`, originalImage);
 
-        await fs.promises.writeFile(`src/files/original/${ fullSizeName }.png`, originalImage);
+            await Promise.all([
+                this.resizeImage(originalImage, `src/files/medium/${ mediumSizeName }.png`, { height: 300 }),
+                this.resizeImage(originalImage, `src/files/small/${ smallSizeName }.png`, { height: 100 }),
+            ]);
 
-        await Promise.all([
-            this.resizeImage(originalImage, `src/files/medium/${ mediumSizeName }.png`, { height: 300 }),
-            this.resizeImage(originalImage, `src/files/small/${ smallSizeName }.png`, { height: 100 }),
-        ]);
+            const content = this.contentRepository.create({
+                keywords: createContentDto.keywords,
+                preview_small: smallSizeName,
+                preview_medium: mediumSizeName,
+                image: fullSizeName,
+                width: createContentDto.width,
+                height: createContentDto.height,
+                proportion,
+                isUpscaled: createContentDto.isUpscaled,
+                url: createContentDto.url,
+                permalink: createContentDto.permalink,
+                author_id: createContentDto.author_id,
+            });
 
-        const content = this.contentRepository.create({
-            keywords: createContentDto.keywords,
-            preview_small: smallSizeName,
-            preview_medium: mediumSizeName,
-            image: fullSizeName,
-            width: createContentDto.width,
-            height: createContentDto.height,
-            proportion,
-            isUpscaled: createContentDto.isUpscaled,
-            url: createContentDto.url,
-            permalink: createContentDto.permalink,
-            author_id: createContentDto.author_id,
-        });
-
-        return await this.contentRepository.save(content);
+            return await this.contentRepository.save(content);
+        } catch (error) {
+            console.log(createContentDto.url);
+        }
     }
 
-    async findAll(filtersDto: FiltersDto): Promise<{ content: Content[]; totalCount: number }> {
+    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: Content[]; totalCount: number }> {
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
-        const contentQB = this.contentRepository.createQueryBuilder('content');
-
+        const contentQB = this.contentRepository.createQueryBuilder('content')
+            .select(['content.id', 'content.keywords', 'content.preview_small', 'content.preview_medium', 'content.width', 'content.height'])
+            .leftJoinAndSelect('content.favourites', 'favourite', 'favourite.user = :userId', { userId: user.id });
         if (condition) contentQB.where(condition, params);
 
         const [content, totalCount] = await contentQB
+            .setParameter('idt', 1)
             .take(limit)
             .skip(offset)
             .getManyAndCount();
@@ -115,10 +120,19 @@ export class ContentService {
     }
 
     async findOne(id: number): Promise<Content> {
-        const content = await this.contentRepository.findOneBy({ id });
+        const content = await this.contentRepository.findOne({
+            select: ['id', 'keywords', 'image', 'width', 'height', 'url', 'permalink', 'proportion'],
+            relations: ['collections'],
+            where: { id },
+        });
         if (!content)
             throw new NotFoundException();
         return content;
+    }
+
+    async checkByPermalink(data: { permalink: string }) {
+        return await this.contentRepository.exist({ where: { permalink: data.permalink } });
+
     }
 
     async update(id: number, updateContentDto: UpdateContentDto) {

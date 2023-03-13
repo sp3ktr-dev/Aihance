@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import Content from '@/views/Content';
-import Collections from '@/views/Collections';
+import CollectionsList from '@/views/CollectionsList';
 import Authorization from '@/views/Authorization';
 import isAuthenticatedGuard from '@/router/auth-guard';
 import store from '@/authStore';
@@ -29,7 +29,7 @@ const routes = [
     {
         path: '/collections',
         name: 'collections',
-        component: Collections,
+        component: CollectionsList,
         beforeEnter: [isAuthenticatedGuard],
     },
 ];

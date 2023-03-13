@@ -1,10 +1,17 @@
 <template>
     <div>
-        <Menu :is-admin="isAdmin()"/>
+        <Sliding title="test" :id="openedId" @closeModal="closeModal" v-if="openedId"/>
+        <Menu :is-admin="admin"/>
         <Search @search="search" v-if="displayFilters"/>
         <Toolbar @filters="toolbarFilters" v-if="displayFilters"/>
-        <div id="pictures" ref="pictures">
-            <Thumbnail class="pictures_preview" v-for="picture of picturesList" :picture="picture" :key="picture.id"/>
+        <div id="pictures">
+            <Thumbnail
+              @open="openModal"
+              class="pictures_preview"
+              v-for="picture of picturesList"
+              :is-admin="admin"
+              :picture="picture"
+              :key="picture.id"/>
 
         </div>
     </div>
@@ -17,14 +24,18 @@ import Thumbnail from '@/components/thumbnail';
 import contentApi from '@/api/contentApi';
 import Search from '@/components/search';
 import Toolbar from '@/components/toolbar';
+import Sliding from '@/components/sliding';
 
 export default {
     name: 'Content area',
-    components: { Menu, Thumbnail, Search, Toolbar },
+    components: { Menu, Thumbnail, Search, Toolbar, Sliding },
     props: {
         contentType: {
             type: String,
             required: true,
+        },
+        collectionId: {
+            type: Number,
         },
     },
     data() {
@@ -36,6 +47,7 @@ export default {
             openedId: null,
             picturesList: [],
             filters: {},
+            admin: this.isAdmin(),
         };
     },
     methods: {
@@ -48,6 +60,9 @@ export default {
                     break;
                 case 'favourite':
                     contentRoute = '/favourite';
+                    break;
+                case 'collection':
+                    contentRoute = `/collection/${ this.$route.params.collectionId }`;
                     break;
                 case 'deleted':
                     contentRoute = 'content/admin/removed';
@@ -84,6 +99,12 @@ export default {
             this.picturesList = [];
             this.currentPage = 1;
         },
+        closeModal() {
+            this.openedId = null;
+        },
+        openModal(id) {
+            this.openedId = id;
+        },
     },
     created() {
         this.loadContent();
@@ -116,7 +137,6 @@ export default {
         },
     },
     mounted() {
-        console.log('mounted');
         window.addEventListener('scroll', this.handleScroll);
     },
     unmounted() {

@@ -2,10 +2,11 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Q
 
 import { ContentService } from './content.service';
 import { CreateContentDto, UpdateContentDto } from './dto/';
-import { Auth } from '@/auth/decorators';
+import { Auth, GetUser } from '@/auth/decorators';
 import { ValidRoles } from '@/auth/enums/valid-roles.enum';
 import { FiltersDto } from '@/common/dto/filters.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { User } from '@/auth/entities/user.entity';
 
 @Controller('content')
 export class ContentController {
@@ -20,8 +21,14 @@ export class ContentController {
 
     @Auth(ValidRoles.user)
     @Get()
-    findAll(@Query() filtersDto: FiltersDto) {
-        return this.contentService.findAll(filtersDto);
+    findAll(@Query() filtersDto: FiltersDto, @GetUser() user: User) {
+        return this.contentService.findAll(filtersDto, user);
+    }
+
+    @Auth(ValidRoles.admin)
+    @Post('/checkByPermalink')
+    checkByPermalink(@Body() data: { permalink: string }) {
+        return this.contentService.checkByPermalink(data);
     }
 
     @Auth(ValidRoles.user)

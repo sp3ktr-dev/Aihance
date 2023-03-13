@@ -19,5 +19,8 @@ export const ui = {
         enter: 'Войти',
         register: 'Зарегистрироваться',
         search: 'Найти',
+        like: 'Нравится',
+        toCollection: 'В коллекцию',
+        delete: 'Удалить',
     },
 };
