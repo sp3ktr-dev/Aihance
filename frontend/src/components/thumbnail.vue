@@ -3,7 +3,7 @@
         <img :src="`${mediumFolder}/${picture.preview_medium}.png`" :alt="picture.keywords" @click="open">
         <br>
         <template v-if="this.displayedFrom !== 'deleted'">
-            <button>{{ $t('ui.buttons.like') }}</button>
+            <button @click="toggleFavorite()" :class="{ 'favourite': isFavourite }">{{ $t('ui.buttons.like') }}</button>
             <button @click="openPopup=!openPopup">{{ $t('ui.buttons.toCollection') }}</button>
             <button @click="removeContent()" v-if="isAdmin && !removed">{{ $t('ui.buttons.delete') }}</button>
             <CollectionPopup
@@ -42,6 +42,7 @@ export default {
             mediumFolder: `${ process.env.VUE_APP_BACKEND_API }/images/medium`,
             openPopup: false,
             removed: false,
+            isFavourite: false,
         };
     },
     methods: {
@@ -60,6 +61,23 @@ export default {
             await contentApi.put(`/content/${ this.picture.id }`);
             this.$emit('restore', this.picture.id);
         },
+        checkFavourite() {
+            this.isFavourite = this.picture.favourite;
+        },
+        toggleFavorite() {
+            this.isFavourite ? this.unsetFavourite() : this.setFavourite();
+        },
+        async setFavourite() {
+            this.isFavourite = true;
+            await contentApi.post('/favourite', { content_id: this.picture.id });
+        },
+        async unsetFavourite() {
+            this.isFavourite = false;
+            await contentApi.delete(`/favourite/${ this.picture.id }`);
+        },
+    },
+    mounted() {
+        this.checkFavourite();
     },
 };
 </script>
@@ -67,5 +85,10 @@ export default {
 <style scoped>
 .removed {
     opacity: 0.4;
+}
+
+.favourite {
+    background-color: #FF0000;
+    color: #FFF;
 }
 </style>

@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { ContentService } from '@/content/content.service';
 import { FiltersDto } from '@/common/dto/filters.dto';
 import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
-import { Content } from '@/content/entities/content.entity';
+import { GetContentDto } from '@/content/dto/get-content.dto';
 
 @Injectable()
 export class FavouriteService {
@@ -32,12 +32,13 @@ export class FavouriteService {
         return await this.favouriteRepository.save(favourite);
     }
 
-    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: Content[], totalCount: number }> {
+    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: GetContentDto[], totalCount: number }> {
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
         const favouriteQB = this.favouriteRepository.createQueryBuilder('favourite')
-            .leftJoinAndSelect('favourite.parentContent', 'content')
+            .leftJoin('favourite.parentContent', 'content')
+            .addSelect(['content.id', 'content.keywords', 'content.preview_small', 'content.preview_medium', 'content.width', 'content.height'])
             .where('favourite.user = :userId', { userId: user.id });
 
         if (condition) favouriteQB.andWhere(condition, params);
@@ -47,8 +48,14 @@ export class FavouriteService {
             .take(limit)
             .skip(offset)
             .getManyAndCount();
-        const content = favourites.map(favourite => favourite.parentContent).filter(picture => Boolean(picture));
-        return { content, totalCount };
+
+        const content = favourites.map(favourite => favourite.parentContent).filter(picture => Boolean(picture)) as GetContentDto[];
+        const getContentDto = content.map(contentItem => {
+            contentItem.favourite = true;
+            return contentItem;
+        });
+
+        return { content: getContentDto, totalCount };
     }
 
     async findOne(id: number, user: User): Promise<Favourite> {

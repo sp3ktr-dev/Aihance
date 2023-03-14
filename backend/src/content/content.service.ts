@@ -14,6 +14,8 @@ import { ContentProportions } from '@/content/enums/content-proportions.enum';
 import { buildFilterCondition } from '@/common/helpers/build-filter-condition.helper';
 import { User } from '@/auth/entities/user.entity';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { GetContentDto } from '@/content/dto/get-content.dto';
+import { toGetContentDto } from '@/content/helpers/to-getcontentdto.helper';
 
 @Injectable()
 export class ContentService {
@@ -64,7 +66,7 @@ export class ContentService {
         }
     }
 
-    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: Content[]; totalCount: number }> {
+    async findAll(filtersDto: FiltersDto, user: User): Promise<{ content: GetContentDto[]; totalCount: number }> {
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
@@ -78,7 +80,9 @@ export class ContentService {
             .take(limit)
             .skip(offset)
             .getManyAndCount();
-        return { content, totalCount };
+
+        let getContentDto = toGetContentDto(content);
+        return { content: getContentDto, totalCount };
     }
 
     async findAllRemoved(paginationDto: PaginationDto): Promise<{ content: Content[]; totalCount: number }> {
@@ -98,12 +102,14 @@ export class ContentService {
         user: User,
         filtersDto: FiltersDto,
         returnTotalCount: boolean = false,
-    ): Promise<Content[] | { content: Content[]; totalCount: number }> {
+    ): Promise<GetContentDto[] | { content: GetContentDto[]; totalCount: number }> {
         const { limit = 50, offset = 0 } = filtersDto;
         const { condition, params } = buildFilterCondition(filtersDto);
 
         const collectionContentQB = this.contentRepository.createQueryBuilder('content')
+            .select(['content.id', 'content.keywords', 'content.preview_small', 'content.preview_medium', 'content.width', 'content.height'])
             .leftJoinAndSelect('content.collections', 'collections')
+            .leftJoinAndSelect('content.favourites', 'favourite', 'favourite.user = :userId', { userId: user.id })
             .where('collections.id = :collectionId', { collectionId });
 
         if (condition) collectionContentQB.andWhere(condition, params);
@@ -114,9 +120,11 @@ export class ContentService {
 
         if (returnTotalCount) {
             const [content, totalCount] = await collectionContentQB.getManyAndCount();
-            return { content, totalCount };
+            const getContentDto = toGetContentDto(content);
+            return { content: getContentDto, totalCount };
         } else {
-            return await collectionContentQB.getMany();
+            const content = await collectionContentQB.getMany();
+            return toGetContentDto(content);
         }
     }
 

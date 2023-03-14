@@ -7,6 +7,7 @@
         <div class="pictures">
             <template v-if="collection.content.length">
                 <Thumbnail
+                  @open="openModal(picture.id)"
                   :picture="picture"
                   :is-admin="isAdmin"
                   :key="picture.id"
@@ -23,6 +24,7 @@ import Thumbnail from '@/components/thumbnail';
 
 export default {
     name: 'collection',
+    emits: ['openModal'],
     props: {
         collectionData: {
             type: Object,
@@ -38,6 +40,11 @@ export default {
         return {
             collection: this.collectionData,
         };
+    },
+    methods: {
+        openModal(id) {
+            this.$emit('openModal', id);
+        },
     },
 };
 </script>

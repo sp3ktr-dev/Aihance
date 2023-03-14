@@ -8,6 +8,7 @@ import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { User } from '@/auth/entities/user.entity';
 import { ContentService } from '@/content/content.service';
 import { FiltersDto } from '@/common/dto/filters.dto';
+import { GetCollectionDto } from '@/collection/dto/get-collection.dto';
 
 @Injectable()
 export class CollectionService {
@@ -38,11 +39,12 @@ export class CollectionService {
         return collection;
     }
 
-    async findAll(user: User): Promise<Collection[]> {
+    async findAll(user: User): Promise<GetCollectionDto[]> {
         const collections = await this.collectionRepository.find({
             where: { user: { id: user.id } },
             order: { updated_at: 'DESC' },
-        });
+        }) as GetCollectionDto[];
+
         await Promise.all(
             collections.map(async (collection) => {
                 const content = await this.contentService.findByCollection(collection.id, user, { limit: 5 });
